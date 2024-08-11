@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Access Denied{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h2 class="text-center text-danger">Access Denied</h2>
+            <div class="alert alert-warning mt-4">
+                <p>You do not have the necessary privileges to access this page.</p>
+                <p>If you believe this is a mistake, please contact your administrator or try logging in with an account
+                    that has the correct permissions.</p>
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('admin_login') }}" class="btn btn-primary">Go to Admin Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

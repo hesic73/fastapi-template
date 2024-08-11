@@ -1,0 +1,25 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Admin - Create {{ name }}{% endblock %}
+
+{% block admin_content %}
+<div class="container">
+    <h2 class="my-4 text-center">New {{ name.capitalize() }}</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form method="post" action="{{url_for('admin_create_api',identity=identity)}}">
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field(class_="form-control") }}
+                </div>
+                {% endfor %}
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-primary" type="submit">Create</button>
+                    <a href="{{url_for('admin_list',identity=identity)}}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

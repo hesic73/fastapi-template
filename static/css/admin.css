@@ -1,0 +1,26 @@
+html {
+    height: -webkit-fill-available;
+}
+
+body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+
+main {
+    min-height: 100vh;
+}
+
+
+.admin-link {
+    text-decoration: none;
+    color: white;
+    opacity: 1.0;
+}
+
+.admin-link:hover {
+    color: white;
+    text-decoration: underline;
+    opacity: 0.8;
+}

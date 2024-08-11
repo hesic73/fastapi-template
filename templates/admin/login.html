@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-4">
+            <h2 class="text-center">Admin Login</h2>
+            <form method="post" class="form-group border p-4" action="{{url_for('login_access_token')}}" id="loginForm">
+                <div class="mb-3">
+                    {{ form.username.label(class_='form-label') }}
+                    {{ form.username(class_='form-control', size=32) }}
+                </div>
+                <div class="mb-3">
+                    {{ form.password.label(class_='form-label') }}
+                    {{ form.password(class_='form-control', size=32) }}
+                </div>
+                <div class="mb-3">
+                    <input type="submit" value="Login" class="btn btn-primary">
+                </div>
+                <!-- Error message container -->
+                <div class="alert alert-danger d-none" id="errorContainer"></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}]
+
+{% block scripts %}
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
+        event.preventDefault();  // Prevent default form submission
+
+        const form = this;
+        const url = form.action;  // The URL to submit the form data to
+
+        // Prepare the FormData object from the form
+        const formData = new FormData(form);
+
+        // Perform the fetch request
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();  // Process JSON response
+                } else {
+                    throw response;  // Handle HTTP errors
+                }
+            })
+            .then(data => {
+                // Assuming the token is in `data.token`
+                const token = data.access_token;
+                Cookies.set('token', token, { expires: 7, path: '/', secure: true });
+                window.location.href = "{{ url_for('admin_index') }}";  // Redirect
+            })
+            .catch(error => {
+                error.json().then(errData => {
+                    const errorContainer = document.getElementById('errorContainer');
+                    errorContainer.textContent = errData.detail;  // Display the error message
+                    errorContainer.classList.remove('d-none');  // Make sure the error message is visible
+                });
+            });
+    });
+</script>
+{% endblock %}

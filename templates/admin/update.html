@@ -1,0 +1,60 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Admin - Update {{ name }}{% endblock %}
+
+{% block admin_content %}
+<div class="container">
+    <h2 class="my-4 text-center">Update {{ name.capitalize() }}</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form id="update-form" method="post" action="{{ url_for('admin_update_api', identity=identity) }}">
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field(class_="form-control") }}
+                </div>
+                {% endfor %}
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-primary" type="submit">Update</button>
+                    <a href="{{ url_for('admin_list', identity=identity) }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('update-form').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+        console.log('Form submitted');
+        var form = event.target;
+        var actionUrl = form.getAttribute('action');
+        var primaryEntries ={{ to_json_string(primary_entries) | safe }}; // Primary entries passed as a JSON object
+
+    // Construct the query string from primary entries
+    var queryString = new URLSearchParams(primaryEntries).toString();
+
+    // Append the query string to the action URL
+    var urlWithParams = actionUrl + '?' + queryString;
+
+    // Create a new FormData object to serialize the form data
+    var formData = new FormData(form);
+
+    // Send the form data via PUT using Fetch API
+    fetch(urlWithParams, {
+        method: 'PUT',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            // Redirect to the list page on success
+            window.location.href = "{{ url_for('admin_list', identity=identity) }}";
+        } else {
+            // Handle errors (you might want to display these to the user)
+            console.error('Error:', response.statusText);
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+    });
+    });
+</script>
+{% endblock %}
