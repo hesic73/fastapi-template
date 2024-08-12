@@ -6,8 +6,9 @@ from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 
 from .utils import templates
+from app.utils.forms import LoginForm
 
-from wtforms import Form, StringField, PasswordField, validators
+from wtforms import Form
 
 
 from app.core.admin.internal import (get_form_class,
@@ -288,17 +289,12 @@ async def update_item(
     })
 
 
-class LoginForm(Form):
-    username = StringField('Username', [validators.Length(min=4, max=25)])
-    password = PasswordField('Password', [validators.DataRequired()])
-
-
 @router.get("/login", name="admin_login")
 async def login(request: Request):
     form = LoginForm()
     return templates.TemplateResponse("admin/login.html", {"request": request, "form": form})
 
 
-@router.get("access_denied", name="admin_access_denied")
+@router.get("/access_denied", name="admin_access_denied")
 async def access_denied(request: Request):
     return templates.TemplateResponse("admin/access_denied.html", {"request": request})

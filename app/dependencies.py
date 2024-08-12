@@ -118,6 +118,32 @@ async def get_current_admin_user(
 CurrentAdminUser = Annotated[schemas.User, Depends(get_current_admin_user)]
 
 
+async def get_current_user_for_page(
+        request: Request,
+        token: TokenDependencyOptional,
+        db: DBDependency
+) -> Optional[schemas.User]:
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = schemas.TokenPayload(**payload)
+    except (InvalidTokenError, ValidationError):
+        return None
+
+    user = await crud.get_user_by_username(db, token_data.sub)
+    if not user:
+        return None
+
+    return user
+
+CurrentUserForPage = Annotated[Optional[schemas.User], Depends(
+    get_current_user_for_page)]
+
+
 async def get_current_admin_user_for_page(
     request: Request,
     token: TokenDependencyOptional,

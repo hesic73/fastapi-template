@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi import status
+from fastapi import status, Request
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -10,10 +10,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.dependencies import DBDependency, TokenDependency, CurrentUser
 
 from app import schemas
+from app.utils.forms import RegistrationForm
+from app.core.security import get_password_hash
 from app.core import security
 from app.core.config import settings
 from app.core.security import get_password_hash
-from app.database.crud import get_user_by_email, get_user_by_username
+from app.database.crud import get_user_by_email, get_user_by_username, create_user
 
 
 router = APIRouter()
@@ -46,3 +48,22 @@ async def login_access_token(
 @router.post("/login/test-token", response_model=schemas.User)
 async def test_token(current_user: CurrentUser):
     return current_user
+
+
+@router.post("/register", name="register_api", response_model=schemas.User)
+async def register(request: Request, db: DBDependency):
+
+    form = RegistrationForm(await request.form())
+    if not form.validate():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(form.errors))
+
+    data = form.data
+
+    user = await create_user(db=db, username=data['username'], hashed_password=get_password_hash(data['password']), email=data['email'])
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User already exists")
+
+    return user

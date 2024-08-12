@@ -8,5 +8,9 @@ class UserBase(BaseModel):
     user_type: UserType = UserType.COMMON
 
 
+class UserCreate(UserBase):
+    hashed_password: str
+
+
 class User(UserBase):
     id: int
