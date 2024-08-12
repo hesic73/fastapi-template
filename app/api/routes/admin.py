@@ -73,32 +73,21 @@ async def delete_item(identity: str, primary_keys: Dict[str, Any], db: DBDepende
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No primary key provided")
 
-    # Build the filter based on the primary keys provided in the JSON body
-    filters = []
-    for key, value in primary_keys.items():
-        if key not in primary_key_names:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid primary key: {key}")
-        filters.append(getattr(model, key) == value)
+    obj = await db.get(model, primary_keys)
 
-    # Query to find the row that matches the primary keys
-    stmt = select(model).where(*filters)
-    result = await db.execute(stmt)
-    item = result.scalars().first()
-
-    if item is None:
+    if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     # Delete the item
-    await db.delete(item)
+    await db.delete(obj)
     try:
         await db.commit()
     except IntegrityError as e:
         await db.rollback()
         logger.error(e)
         raise HTTPException(
-            status_code=400, detail="Integrity error during deletion")
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Integrity error during deletion")
 
     return {"detail": "Item deleted successfully"}
 
@@ -131,7 +120,6 @@ async def delete_items(identity: str, primary_keys_list: List[Dict[str, Any]], d
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No valid primary keys provided")
 
-    # Delete items that match any of the provided primary key sets
     stmt = delete(model).where(or_(*filters))
 
     try:
@@ -170,13 +158,9 @@ async def update_item(
             status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
 
     # Step 3: Fetch the existing row based on the primary keys
-    filters = [getattr(model, key) == value for key,
-               value in primary_entries.items()]
-    query = select(model).where(*filters)
-    result = await db.execute(query)
-    item = result.scalar_one_or_none()
+    obj = await db.get(model, primary_entries)
 
-    if item is None:
+    if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
@@ -195,11 +179,11 @@ async def update_item(
             column = model.__table__.columns.get(field.name)
             if column is not None:
                 # Only update fields that exist in the model and form
-                setattr(item, field.name, field.data)
+                setattr(obj, field.name, field.data)
 
     # Step 6: Commit the changes to the database
     try:
-        db.add(item)
+        db.add(obj)
         await db.commit()
     except IntegrityError as e:
         await db.rollback()

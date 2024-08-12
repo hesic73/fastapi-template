@@ -19,20 +19,24 @@ async def create_user(db: AsyncSession, username: str, hashed_password: str, ema
 
 
 async def get_users(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(select(User).offset(skip).limit(limit))
+    stmt = select(User).offset(skip).limit(limit)
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
 async def get_user_by_username(db: AsyncSession, username: str):
-    result = await db.execute(select(User).filter(User.username == username))
+    stmt = select(User).filter(User.username == username)
+    result = await db.execute(stmt)
     return result.scalars().first()
 
 
 async def get_user_by_email(db: AsyncSession, email: str):
-    result = await db.execute(select(User).filter(User.email == email))
+    stmt = select(User).filter(User.email == email)
+    result = await db.execute(stmt)
     return result.scalars().first()
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int):
-    result = await db.execute(select(User).filter(User.id == user_id))
+    stmt = select(User).filter(User.id == user_id)
+    result = await db.execute(stmt)
     return result.scalars().first()

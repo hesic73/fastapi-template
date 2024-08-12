@@ -2,6 +2,7 @@ from wtforms import Form, StringField, validators, TextAreaField, TimeField, Int
 
 
 from sqlalchemy import Column
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.types import Enum, String, Integer, Boolean, DateTime, CHAR, TEXT, Date, Time, Numeric
 from sqlalchemy_utils.types.email import EmailType
 
@@ -86,7 +87,7 @@ def get_form_field(column: Column):
         raise ValueError(f"Unsupported column type: {column.type}")
 
 
-def make_form(model, form_include_primary_key=False):
+def make_form(model: DeclarativeBase, form_include_primary_key: bool = False):
     form_name = model.__name__ + "Form"
     fields = {}
 
@@ -100,7 +101,7 @@ def make_form(model, form_include_primary_key=False):
     return type(form_name, (Form,), fields)
 
 
-def make_primary_key_form(model):
+def make_primary_key_form(model: DeclarativeBase):
     form_name = model.__name__ + "PrimaryKeyForm"
     fields = {}
     for column in model.__table__.columns:

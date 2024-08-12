@@ -206,25 +206,16 @@ async def read_item(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
 
-    # Convert query params to the appropriate type based on column definitions
-    filters = []
-    for key, value in primary_entries.items():
-        column: Column = getattr(model, key)
-        filters.append(column == value)
+    obj = await db.get(model, primary_entries)
 
-    # Fetch the row
-    query = select(model).where(*filters)
-    result = await db.execute(query)
-    row = result.scalar_one_or_none()
-
-    if row is None:
+    if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     formatters = get_formatters(identity)
-    display_entries = {column.name: formatters[column](
-        getattr(row, column.name)) for column in model.__table__.columns}
-
+    obj = {column.name: getattr(obj, column.name)
+           for column in obj.__table__.columns}
+    display_entries = {k: formatters[k](v) for k, v in obj.items()}
     items = get_sidebar_items(identity)
     name = get_name(identity)
 
@@ -247,7 +238,7 @@ async def update_item(
 ):
     if not current_admin_user:
         return RedirectResponse(url=request.url_for("admin_access_denied"))
-    # Step 1: Get the validated primary entries as in admin_read
+
     primary_entries = get_validated_primary_entries(
         identity, request.query_params)
     if primary_entries is None:
@@ -259,23 +250,15 @@ async def update_item(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
 
-    # Step 2: Fetch the row based on the primary entries
-    filters = [getattr(model, key) == value for key,
-               value in primary_entries.items()]
-    query = select(model).where(*filters)
-    result = await db.execute(query)
-    row = result.scalar_one_or_none()
+    obj = await db.get(model, primary_entries)
 
-    if row is None:
+    if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    # Step 3: Get the form class and populate it with the current data
     form_cls = get_form_class(identity)
-    # Use 'obj=row' to pre-fill the form with existing data
-    form: Form = form_cls(obj=row)
+    form: Form = form_cls(obj=obj)
 
-    # Step 4: Render the update page
     items = get_sidebar_items(identity)
     name = get_name(identity)
 

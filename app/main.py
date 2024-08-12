@@ -12,8 +12,7 @@ from app.core.admin import register_admin_model_view
 
 from app.database import init_db
 
-from app.database.models.user import User
-from app.database.models.item import Item
+from app.database.models import User, Address
 
 from contextlib import asynccontextmanager
 
@@ -31,10 +30,10 @@ register_admin_model_view(
     name_plural="Users")
 
 register_admin_model_view(
-    model=Item,
-    columns=[Item.id, Item.name, Item.description,
-             Item.price, Item.created_at],
-)
+    model=Address,
+    columns=[Address.id, Address.email_address, Address.user_id],
+    name="Address",
+    name_plural="Addresses")
 
 
 app = FastAPI(

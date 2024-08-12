@@ -7,8 +7,8 @@ import enum
 from app.core.config import settings
 from typing import Optional, List, Dict, Any, Tuple, Callable, Union
 from enum import Enum
-from dataclasses import dataclass
 from sqlalchemy import Column
+from sqlalchemy.orm import DeclarativeBase
 
 from wtforms import Form
 
@@ -37,7 +37,7 @@ def make_admin_list_url_path(identity: str) -> str:
     return f"{settings.ADMIN_BASE_URL}/{identity}/list"
 
 
-_models: Dict[str, type] = {}
+_models: Dict[str, DeclarativeBase] = {}
 _forms: Dict[str, Form] = {}
 _primary_key_forms: Dict[str, Form] = {}
 _names: Dict[str, str] = {}
@@ -105,40 +105,40 @@ def get_form_class(identity: str) -> Form:
     return _forms[identity]
 
 
-def get_model(identity: str) -> Optional[type]:
-    return _models.get(identity, None)
+def get_model(identity: str) -> DeclarativeBase:
+    return _models.get(identity)
 
 
-def get_name_plural(identity: str) -> Optional[str]:
-    return _names_plural.get(identity, None)
+def get_name_plural(identity: str) -> str:
+    return _names_plural.get(identity)
 
 
-def get_name(identity: str) -> Optional[str]:
-    return _names.get(identity, None)
+def get_name(identity: str) -> str:
+    return _names.get(identity)
 
 
 def get_all_identities() -> List[str]:
     return list(_models.keys())
 
 
-def get_column_names(identity: str) -> Optional[List[str]]:
-    return _column_names.get(identity, None)
+def get_column_names(identity: str) -> List[str]:
+    return _column_names.get(identity)
 
 
-def get_columns(identity: str) -> Optional[List[Column]]:
-    return _columns.get(identity, None)
+def get_columns(identity: str) -> List[Column]:
+    return _columns.get(identity)
 
 
-def get_formatters(identity: str) -> Optional[Dict[Column, Callable[[Any], str]]]:
-    return _formatters.get(identity, None)
+def get_formatters(identity: str) -> Dict[Column, Callable[[Any], str]]:
+    return _formatters.get(identity)
 
 
 def get_primary_key_columns(identity: str) -> List[Column]:
-    return _primary_key_columns.get(identity, [])
+    return _primary_key_columns.get(identity)
 
 
 def get_primary_key_names(identity: str) -> List[str]:
-    return _primary_key_names.get(identity, [])
+    return _primary_key_names.get(identity)
 
 
 def get_validated_primary_entries(identity: str, d: Dict[str, str]) -> Dict[str, Any]:
@@ -151,4 +151,4 @@ def get_validated_primary_entries(identity: str, d: Dict[str, str]) -> Dict[str,
 
 
 def get_sort_by_keys(identity: str) -> List[_SORT_BY_KEY_T]:
-    return _sort_by_keys_dict.get(identity, [])
+    return _sort_by_keys_dict.get(identity)
