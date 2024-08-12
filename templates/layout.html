@@ -28,10 +28,10 @@
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="btn btn-outline-primary me-2" href="{{ url_for('login') }}">Sign In</a>
+                    <a class="btn btn-outline-primary me-2" href="{{ url_for('page:login') }}">Sign In</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-primary" href="{{ url_for('register') }}">Sign Up</a>
+                    <a class="btn btn-primary" href="{{ url_for('page:register') }}">Sign Up</a>
                 </li>
                 {% endif %}
             </ul>
@@ -54,7 +54,7 @@
             // Delete the token cookie using js-cookie
             Cookies.remove('token', { path: '/' });
 
-            // Redirect to the login page
+            // Redirect to the index page
             window.location.href = "{{ url_for('index') }}";
         });
     }

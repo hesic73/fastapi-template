@@ -154,7 +154,7 @@ async def get_current_admin_user_for_page(
             status_code=status.HTTP_303_SEE_OTHER,
             detail="Redirecting to access denied",
             headers={"Location": request.url_for(
-                "admin_access_denied").__str__()}
+                "page:admin_access_denied").__str__()}
         )
 
     try:
@@ -167,7 +167,7 @@ async def get_current_admin_user_for_page(
             status_code=status.HTTP_303_SEE_OTHER,
             detail="Redirecting to access denied",
             headers={"Location": request.url_for(
-                "admin_access_denied").__str__()}
+                "page:admin_access_denied").__str__()}
         )
 
     user = await crud.get_user_by_username(db, token_data.sub)
@@ -176,7 +176,7 @@ async def get_current_admin_user_for_page(
             status_code=status.HTTP_303_SEE_OTHER,
             detail="Redirecting to access denied",
             headers={"Location": request.url_for(
-                "admin_access_denied").__str__()}
+                "page:admin_access_denied").__str__()}
         )
 
     return user

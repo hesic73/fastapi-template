@@ -7,7 +7,7 @@
     <h2 class="my-4 text-center">New {{ name.capitalize() }}</h2>
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <form method="post" action="{{url_for('admin_create_api',identity=identity)}}">
+            <form method="post" action="{{url_for('admin_create',identity=identity)}}">
                 {% for field in form %}
                 <div class="mb-3">
                     <label class="form-label">{{ field.label }}</label>
@@ -16,7 +16,7 @@
                 {% endfor %}
                 <div class="d-flex justify-content-between">
                     <button class="btn btn-primary" type="submit">Create</button>
-                    <a href="{{url_for('admin_list',identity=identity)}}" class="btn btn-secondary">Cancel</a>
+                    <a href="{{url_for('page:admin_list',identity=identity)}}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>

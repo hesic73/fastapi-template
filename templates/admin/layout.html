@@ -10,12 +10,12 @@
 <main class="d-flex flex-nowrap">
     <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width: 280px;">
         <h1 class="text-center my-1">
-            <a href="{{url_for('admin_index')}}" class="admin-link">Admin</a>
+            <a href="{{url_for('page:admin_index')}}" class="admin-link">Admin</a>
         </h1>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
             {% for item in sidebar_items %}
-            {% set href = url_for('admin_list', identity=item.identity) %}
+            {% set href = url_for('page:admin_list', identity=item.identity) %}
             <li class="nav-item">
                 {% if item.active %}
                 <a href="{{ href }}" class="nav-link active" aria-current="page">
@@ -47,7 +47,7 @@
         Cookies.remove('token', { path: '/' });
 
         // Redirect to the login page
-        window.location.href = "{{ url_for('admin_login') }}";
+        window.location.href = "{{ url_for('page:admin_login') }}";
     });
 </script>
 {% endblock %}

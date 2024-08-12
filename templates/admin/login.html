@@ -56,7 +56,7 @@
                 // Assuming the token is in `data.token`
                 const token = data.access_token;
                 Cookies.set('token', token, { expires: 7, path: '/', secure: true });
-                window.location.href = "{{ url_for('admin_index') }}";  // Redirect
+                window.location.href = "{{ url_for('page:admin_index') }}";  // Redirect
             })
             .catch(error => {
                 error.json().then(errData => {

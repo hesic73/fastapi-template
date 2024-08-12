@@ -18,13 +18,13 @@ async def index(request: Request, current_user: CurrentUserForPage):
     })
 
 
-@router.get("/register", name="register")
+@router.get("/register", name="page:register")
 async def register(request: Request):
     form = RegistrationForm()
     return templates.TemplateResponse("register.html", {"request": request, "form": form})
 
 
-@router.get("/login", name="login")
+@router.get("/login", name="page:login")
 async def login(request: Request):
     form = LoginForm()
     return templates.TemplateResponse("login.html", {"request": request, "form": form})

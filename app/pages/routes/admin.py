@@ -97,7 +97,7 @@ async def get_count(db: AsyncSession, columns: List[Column]) -> int:
         return -1
 
 
-@router.get("/", name="admin_index", dependencies=[Depends(get_current_admin_user_for_page)])
+@router.get("/", name="page:admin_index", dependencies=[Depends(get_current_admin_user_for_page)])
 async def index(request: Request,
                 ):
     items = get_sidebar_items()
@@ -112,7 +112,7 @@ class _RowAttributes(BaseModel):
     display_entries: dict[str, Any]
 
 
-@router.get("/{identity}/list", name="admin_list", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
+@router.get("/{identity}/list", name="page:admin_list", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def admin_list(
     request: Request,
     identity: str,
@@ -160,7 +160,7 @@ async def admin_list(
     })
 
 
-@router.get("/{identity}/create", name="admin_create", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
+@router.get("/{identity}/create", name="page:admin_create", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def admin_create(request: Request,
                        identity: str,
                        form_cls=Depends(get_form_class),
@@ -179,7 +179,7 @@ async def admin_create(request: Request,
     })
 
 
-@router.get("/{identity}/read", name="admin_read", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
+@router.get("/{identity}/read", name="page:admin_read", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def read_item(
     request: Request,
     identity: str,
@@ -209,7 +209,7 @@ async def read_item(
     })
 
 
-@router.get("/{identity}/update", name="admin_update", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
+@router.get("/{identity}/update", name="page:admin_update", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def update_item(
     request: Request,
     identity: str,
@@ -239,12 +239,12 @@ async def update_item(
     })
 
 
-@router.get("/login", name="admin_login")
+@router.get("/login", name="page:admin_login")
 async def login(request: Request):
     form = LoginForm()
     return templates.TemplateResponse("admin/login.html", {"request": request, "form": form})
 
 
-@router.get("/access_denied", name="admin_access_denied")
+@router.get("/access_denied", name="page:admin_access_denied")
 async def access_denied(request: Request):
     return templates.TemplateResponse("admin/access_denied.html", {"request": request})
