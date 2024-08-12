@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 
 from app.utils.forms import RegistrationForm, LoginForm
+from app.dependencies import CurrentUserForPage
 
 
 from .utils import templates
@@ -9,8 +10,12 @@ router = APIRouter()
 
 
 @router.get("/", name="index")
-async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+async def index(request: Request, current_user: CurrentUserForPage):
+    username = current_user.username if current_user else None
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "username": username,
+    })
 
 
 @router.get("/register", name="register")

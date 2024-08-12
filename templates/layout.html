@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .navbar .btn {
+        min-width: 80px;
+        /* Adjust the value as needed */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('index') }}">My Website</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if username %}
+                <li class="nav-item">
+                    <a class="btn btn-outline-primary me-2" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a id="logout-button" class="btn btn-danger" href="javascript:void(0);">Logout</a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="btn btn-outline-primary me-2" href="{{ url_for('login') }}">Sign In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-primary" href="{{ url_for('register') }}">Sign Up</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+{%block main_content%}
+
+{%endblock%}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var logoutButton = document.getElementById("logout-button");
+    if (logoutButton) {
+        logoutButton.addEventListener("click", function () {
+            // Delete the token cookie using js-cookie
+            Cookies.remove('token', { path: '/' });
+
+            // Redirect to the login page
+            window.location.href = "{{ url_for('index') }}";
+        });
+    }
+</script>
+{% endblock %}

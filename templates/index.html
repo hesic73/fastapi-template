@@ -1,9 +1,13 @@
-{%extends "base.html"%}
+{% extends 'layout.html' %}
 
-{%block title%}Home{%endblock%}
+{% block title %}Index{% endblock %}
 
-{%block content%}
+{% block main_content %}
 
-<h1>Hello, world!</h1>
 
-{%endblock%}
+<div class="container mt-5">
+    <h1>Welcome to My Website</h1>
+    <p>This is the index content.</p>
+</div>
+
+{% endblock %}
