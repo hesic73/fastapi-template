@@ -3,12 +3,13 @@ from fastapi import status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql import select, delete, and_, or_
+from sqlalchemy.sql import delete, and_, or_
 
 from wtforms import Form
 
 from app.core.admin.internal import get_model, get_form_class, get_primary_key_names, get_validated_primary_entries
 from app.core.admin.internal import make_admin_list_url_path
+from app.core.admin.internal import identity_exists
 from app.core.config import settings
 from app.dependencies import DBDependency, get_current_admin_user
 
@@ -20,17 +21,16 @@ from typing import Any, Dict, List
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix=settings.ADMIN_BASE_URL,
-                   dependencies=[Depends(get_current_admin_user)])
+                   dependencies=[Depends(get_current_admin_user), Depends(identity_exists)])
 
 
 @router.post("/{identity}/create", name='admin_create_api')
-async def create_item(request: Request, identity: str, db: DBDependency):
-    model = get_model(identity)
-    if model is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
-
-    form_cls = get_form_class(identity)
+async def create_item(request: Request,
+                      db: DBDependency,
+                      model=Depends(get_model),
+                      form_cls=Depends(get_form_class),
+                      admin_list_url_path=Depends(make_admin_list_url_path),
+                      ):
 
     form: Form = form_cls(await request.form())
 
@@ -56,17 +56,14 @@ async def create_item(request: Request, identity: str, db: DBDependency):
         logger.error(e)
         raise HTTPException(status_code=400, detail="Integrity error")
 
-    return RedirectResponse(url=make_admin_list_url_path(identity=identity), status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=admin_list_url_path, status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.delete("/{identity}", name='admin_delete_api')
-async def delete_item(identity: str, primary_keys: Dict[str, Any], db: DBDependency):
-    model = get_model(identity)
-    if model is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
-
-    primary_key_names = get_primary_key_names(identity)
+async def delete_item(primary_keys: Dict[str, Any],
+                      db: DBDependency,
+                      model=Depends(get_model),
+                      ):
 
     # Check if primary_keys is empty
     if not primary_keys:
@@ -93,13 +90,11 @@ async def delete_item(identity: str, primary_keys: Dict[str, Any], db: DBDepende
 
 
 @router.delete("/{identity}/batch_delete", name='admin_delete_all_api')
-async def delete_items(identity: str, primary_keys_list: List[Dict[str, Any]], db: DBDependency):
-    model = get_model(identity)
-    if model is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
-
-    primary_key_names = get_primary_key_names(identity)
+async def delete_items(primary_keys_list: List[Dict[str, Any]],
+                       db: DBDependency,
+                       model=Depends(get_model),
+                       primary_key_names=Depends(get_primary_key_names),
+                       ):
 
     if not primary_keys_list or any(not pk for pk in primary_keys_list):
         raise HTTPException(
@@ -141,31 +136,18 @@ async def delete_items(identity: str, primary_keys_list: List[Dict[str, Any]], d
 @router.put("/{identity}/update", name='admin_update_api')
 async def update_item(
     request: Request,
-    identity: str,
     db: DBDependency,
+    model=Depends(get_model),
+    form_cls=Depends(get_form_class),
+    primary_entries: Dict[str, Any] = Depends(get_validated_primary_entries),
+    admin_list_url_path=Depends(make_admin_list_url_path),
 ):
-    # Step 1: Get the validated primary entries from the query parameters
-    primary_entries = get_validated_primary_entries(
-        identity, request.query_params)
-    if primary_entries is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid primary entries")
-
-    # Step 2: Get the model class based on the identity
-    model = get_model(identity)
-    if model is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
-
-    # Step 3: Fetch the existing row based on the primary keys
     obj = await db.get(model, primary_entries)
 
     if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    # Step 4: Get the form class and populate it with the incoming data
-    form_cls = get_form_class(identity)
     form: Form = form_cls(await request.form())
 
     if not form.validate():
@@ -173,7 +155,6 @@ async def update_item(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=form.errors)
 
-    # Step 5: Update only fields that are present in the form
     for field in form:
         if field.name in model.__table__.columns:
             column = model.__table__.columns.get(field.name)
@@ -181,7 +162,6 @@ async def update_item(
                 # Only update fields that exist in the model and form
                 setattr(obj, field.name, field.data)
 
-    # Step 6: Commit the changes to the database
     try:
         db.add(obj)
         await db.commit()
@@ -192,4 +172,4 @@ async def update_item(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Integrity error")
 
     # Redirect back to the list view after successful update
-    return RedirectResponse(url=make_admin_list_url_path(identity=identity), status_code=status.HTTP_303_SEE_OTHER)
+    return RedirectResponse(url=admin_list_url_path, status_code=status.HTTP_303_SEE_OTHER)

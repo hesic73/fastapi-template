@@ -10,6 +10,9 @@ from enum import Enum
 from sqlalchemy import Column
 from sqlalchemy.orm import DeclarativeBase
 
+
+from fastapi import HTTPException, Request, status
+
 from wtforms import Form
 
 
@@ -141,14 +144,22 @@ def get_primary_key_names(identity: str) -> List[str]:
     return _primary_key_names.get(identity)
 
 
-def get_validated_primary_entries(identity: str, d: Dict[str, str]) -> Dict[str, Any]:
+def get_validated_primary_entries(identity: str, request: Request) -> Dict[str, Any]:
     form_cls = _primary_key_forms[identity]
-    form = form_cls(d)
+    form = form_cls(request.query_params)
     if form.validate():
         return form.data
     else:
-        raise ValueError(form.errors)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid primary entries")
 
 
 def get_sort_by_keys(identity: str) -> List[_SORT_BY_KEY_T]:
     return _sort_by_keys_dict.get(identity)
+
+
+def identity_exists(identity: str) -> bool:
+    if identity not in _models:
+        raise HTTPException(
+            status_code=404, detail=f"Identity '{identity}' not found")
+    return True

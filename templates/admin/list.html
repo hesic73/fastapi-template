@@ -69,6 +69,10 @@
 
     <!-- Pagination and Page Size Dropdown -->
     <div class="row mb-5">
+        <div class="col-auto">
+            <p>Showing {{(current_page-1)*page_size+1}} to {{min(current_page*page_size,total_rows)}} of
+                {{total_rows}} {% if total_rows>1%} items{%else %} item{%endif%}.</p>
+        </div>
         <div class="col d-flex justify-content-center">
             <nav aria-label="Page navigation">
                 <ul class="pagination">

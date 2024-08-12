@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, status
+from fastapi import APIRouter, Request, status, Depends
 from fastapi import Query
 from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
@@ -23,9 +23,11 @@ from app.core.admin.internal import (get_form_class,
                                      get_sort_by_keys,
                                      AdminListSortOrder,
                                      _SORT_BY_KEY_T)
-from app.dependencies import DBDependency, CurrentAdminUserForPage
 
-import sqlalchemy
+from app.core.admin.internal import identity_exists
+from app.dependencies import DBDependency, get_current_admin_user_for_page
+
+
 from sqlalchemy import Column, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -95,10 +97,9 @@ async def get_count(db: AsyncSession, columns: List[Column]) -> int:
         return -1
 
 
-@router.get("/", name="admin_index")
-async def index(request: Request, current_admin_user: CurrentAdminUserForPage):
-    if not current_admin_user:
-        return RedirectResponse(url=request.url_for("admin_access_denied"))
+@router.get("/", name="admin_index", dependencies=[Depends(get_current_admin_user_for_page)])
+async def index(request: Request,
+                ):
     items = get_sidebar_items()
     return templates.TemplateResponse("admin/index.html", {
         "request": request,
@@ -111,20 +112,14 @@ class _RowAttributes(BaseModel):
     display_entries: dict[str, Any]
 
 
-@router.get("/{identity}/list", name="admin_list")
+@router.get("/{identity}/list", name="admin_list", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def admin_list(
     request: Request,
     identity: str,
     db: DBDependency,
-    current_admin_user: CurrentAdminUserForPage,
     page: int = Query(1, ge=1),
     pageSize: int = Query(10, enum=[10, 20, 50, 100]),
 ):
-    if not current_admin_user:
-        return RedirectResponse(url=request.url_for("admin_access_denied"))
-    if identity not in get_all_identities():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
 
     column_names = get_column_names(identity)
     columns = get_columns(identity)
@@ -160,21 +155,18 @@ async def admin_list(
         "page_sizes": [10, 20, 50, 100],
         "page_size": pageSize,
         "current_page": page,
-        "total_pages": total_pages
+        "total_pages": total_pages,
+        "total_rows": total_rows,
     })
 
 
-@router.get("/{identity}/create", name="admin_create")
+@router.get("/{identity}/create", name="admin_create", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def admin_create(request: Request,
                        identity: str,
-                       current_admin_user: CurrentAdminUserForPage,):
-    if not current_admin_user:
-        return RedirectResponse(url=request.url_for("admin_access_denied"))
+                       form_cls=Depends(get_form_class),
+                       ):
     name = get_name(identity)
-    if name is None:
-        raise HTTPException(status_code=404, detail="Identity not found")
 
-    form_cls = get_form_class(identity)
     form: Form = form_cls()
 
     items = get_sidebar_items(identity)
@@ -187,27 +179,15 @@ async def admin_create(request: Request,
     })
 
 
-@router.get("/{identity}/read", name="admin_read")
+@router.get("/{identity}/read", name="admin_read", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def read_item(
     request: Request,
     identity: str,
     db: DBDependency,
-    current_admin_user: CurrentAdminUserForPage,
+    primary_entries=Depends(get_validated_primary_entries),
 ):
-    if not current_admin_user:
-        return RedirectResponse(url=request.url_for("admin_access_denied"))
-    primary_entries = get_validated_primary_entries(
-        identity, request.query_params)
-    if primary_entries is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid primary entries")
     model = get_model(identity)
-    if model is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
-
     obj = await db.get(model, primary_entries)
-
     if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
@@ -229,34 +209,21 @@ async def read_item(
     })
 
 
-@router.get("/{identity}/update", name="admin_update")
+@router.get("/{identity}/update", name="admin_update", dependencies=[Depends(get_current_admin_user_for_page), Depends(identity_exists)])
 async def update_item(
     request: Request,
     identity: str,
     db: DBDependency,
-    current_admin_user: CurrentAdminUserForPage,
+        primary_entries=Depends(get_validated_primary_entries),
+        form_cls=Depends(get_form_class),
 ):
-    if not current_admin_user:
-        return RedirectResponse(url=request.url_for("admin_access_denied"))
-
-    primary_entries = get_validated_primary_entries(
-        identity, request.query_params)
-    if primary_entries is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid primary entries")
 
     model = get_model(identity)
-    if model is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found")
-
     obj = await db.get(model, primary_entries)
-
     if obj is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    form_cls = get_form_class(identity)
     form: Form = form_cls(obj=obj)
 
     items = get_sidebar_items(identity)
