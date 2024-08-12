@@ -5,9 +5,9 @@ from sqlalchemy.sql import select
 from sqlalchemy.exc import IntegrityError
 
 
-async def create_user(db: AsyncSession, username: str, hashed_password: str, email: str, user_type: UserType = UserType.COMMON):
+async def create_user(db: AsyncSession, username: str, full_name: str, hashed_password: str, email: str, user_type: UserType = UserType.COMMON):
     try:
-        db_user = User(username=username, hashed_password=hashed_password,
+        db_user = User(username=username, full_name=full_name, hashed_password=hashed_password,
                        email=email, user_type=user_type)
         db.add(db_user)
         await db.commit()

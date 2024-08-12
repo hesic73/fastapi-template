@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, status, Depends
 from fastapi import Query
-from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
 
 from pydantic import BaseModel

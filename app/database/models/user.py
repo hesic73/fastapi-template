@@ -1,4 +1,4 @@
-from sqlalchemy import String
+from sqlalchemy import String, Unicode
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy_utils.types.email import EmailType
 
@@ -13,7 +13,8 @@ class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(30), unique=True)
-    hashed_password: Mapped[str] = mapped_column(String(30))
+    full_name: Mapped[str] = mapped_column(Unicode(255))
+    hashed_password: Mapped[str] = mapped_column(String(255))
     email: Mapped[EmailStr] = mapped_column(EmailType, unique=True)
     user_type: Mapped[UserType]
 

@@ -12,6 +12,10 @@
                     {{ form.username(class_='form-control', size=32) }}
                 </div>
                 <div class="mb-3">
+                    {{ form.full_name.label(class_='form-label') }}
+                    {{ form.full_name(class_='form-control', size=32) }}
+                </div>
+                <div class="mb-3">
                     {{ form.email.label(class_='form-label') }}
                     {{ form.email(class_='form-control', size=32) }}
                 </div>

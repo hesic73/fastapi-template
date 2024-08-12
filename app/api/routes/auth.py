@@ -60,7 +60,13 @@ async def register(request: Request, db: DBDependency):
 
     data = form.data
 
-    user = await create_user(db=db, username=data['username'], hashed_password=get_password_hash(data['password']), email=data['email'])
+    user = await create_user(db=db,
+                             username=data['username'],
+                             full_name=data["full_name"],
+                             hashed_password=get_password_hash(
+                                 data['password']),
+                             email=data['email'],
+                             )
 
     if not user:
         raise HTTPException(

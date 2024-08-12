@@ -1,4 +1,12 @@
-from wtforms import Form, StringField, validators, TextAreaField, TimeField, IntegerField, DecimalField, EmailField
+from wtforms import (Form,
+                     StringField,
+                     validators,
+                     TextAreaField,
+                     TimeField,
+                     IntegerField,
+                     DecimalField,
+                     EmailField,
+)
 
 
 from sqlalchemy import Column
@@ -8,7 +16,7 @@ from sqlalchemy_utils.types.email import EmailType
 
 import enum
 
-from .fields import DateField,  SelectField, DateTimeField
+from .fields import SelectField, DateField, DateTimeField
 
 
 def get_form_field(column: Column):
