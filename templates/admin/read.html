@@ -72,13 +72,18 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
 <script>
     let deleteData = null;
+    let deleteModalInstance = null;
 
     function confirmDelete(primaryKeyData) {
         deleteData = primaryKeyData;
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        deleteModal.show();
+        deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModalInstance.show();
     }
 
     document.getElementById('confirmDeleteButton').addEventListener('click', function () {
@@ -94,17 +99,30 @@
                     if (response.ok) {
                         location.href = "{{ url_for('page:admin_list', identity=identity) }}"; // Redirect to the list page
                     } else {
-                        showErrorModal();
+                        closeModal(deleteModalInstance); // Close the confirmation modal
+                        showErrorModal('Failed to delete. Please try again.');
                     }
                 })
                 .catch(() => {
-                    showErrorModal();
+                    closeModal(deleteModalInstance); // Close the confirmation modal
+                    showErrorModal('An error occurred while attempting to delete. Please try again.');
                 });
         }
     });
 
-    function showErrorModal() {
+    function closeModal(modalInstance) {
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+    }
+
+    function showErrorModal(message) {
+        closeModal(deleteModalInstance);  // Ensure the delete modal is closed
         const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        const errorMessageElement = document.getElementById('errorModalMessage');
+        if (errorMessageElement) {
+            errorMessageElement.textContent = message;
+        }
         errorModal.show();
     }
 </script>

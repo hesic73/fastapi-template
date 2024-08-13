@@ -36,9 +36,6 @@ class AdminListSortOrder(enum.Enum):
 _SORT_BY_KEY_T = Union[Tuple[Column, AdminListSortOrder], Column]
 
 
-def make_admin_list_url_path(identity: str) -> str:
-    return f"{settings.ADMIN_BASE_URL}/{identity}/list"
-
 
 _models: Dict[str, DeclarativeBase] = {}
 _forms: Dict[str, Form] = {}

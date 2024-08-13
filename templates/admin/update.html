@@ -22,6 +22,10 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
 
 <script>
     document.getElementById('update-form').addEventListener('submit', function (event) {
@@ -29,7 +33,8 @@
         console.log('Form submitted');
         var form = event.target;
         var actionUrl = form.getAttribute('action');
-        var primaryEntries ={{ to_json_string(primary_entries) | safe }}; // Primary entries passed as a JSON object
+        var primaryEntries = {{ to_json_string(primary_entries) | safe
+    }}; // Primary entries passed as a JSON object
 
     // Construct the query string from primary entries
     var queryString = new URLSearchParams(primaryEntries).toString();
@@ -49,12 +54,31 @@
             // Redirect to the list page on success
             window.location.href = "{{ url_for('page:admin_list', identity=identity) }}";
         } else {
-            // Handle errors (you might want to display these to the user)
-            console.error('Error:', response.statusText);
+            // Handle errors
+            response.json().then(data => {
+                console.error('Error:', data.detail);
+                displayErrorMessage(data.detail); // Display the error message to the user
+            }).catch(error => {
+                console.error('Error parsing JSON:', error);
+                displayErrorMessage('An unexpected error occurred.'); // Fallback error message
+            });
         }
     }).catch(error => {
         console.error('Error:', error);
+        displayErrorMessage('Failed to submit the form. Please try again later.'); // Network or other errors
     });
     });
+
+    function displayErrorMessage(message) {
+        // Create or update an error message element in the form
+        var errorElement = document.getElementById('form-error');
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.id = 'form-error';
+            errorElement.className = 'alert alert-danger';
+            document.getElementById('update-form').prepend(errorElement);
+        }
+        errorElement.textContent = message;
+    }
 </script>
 {% endblock %}

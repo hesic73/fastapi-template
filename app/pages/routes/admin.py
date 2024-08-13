@@ -188,8 +188,11 @@ async def read_item(
     model = get_model(identity)
     obj = await db.get(model, primary_entries)
     if obj is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+        return templates.TemplateResponse("admin/error.html", {
+            "request": request,
+            "identity": identity,
+            "details": "Item not found",
+        })
 
     formatters = get_formatters(identity)
     obj = {column.name: getattr(obj, column.name)
@@ -220,8 +223,11 @@ async def update_item(
     model = get_model(identity)
     obj = await db.get(model, primary_entries)
     if obj is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+        return templates.TemplateResponse("admin/error.html", {
+            "request": request,
+            "identity": identity,
+            "details": "Item not found",
+        })
 
     form: Form = form_cls(obj=obj)
 

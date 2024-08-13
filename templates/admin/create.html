@@ -7,7 +7,7 @@
     <h2 class="my-4 text-center">New {{ name.capitalize() }}</h2>
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <form method="post" action="{{url_for('admin_create',identity=identity)}}">
+            <form id="create-form" method="post" action="{{url_for('admin_create',identity=identity)}}">
                 {% for field in form %}
                 <div class="mb-3">
                     <label class="form-label">{{ field.label }}</label>
@@ -22,4 +22,55 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+    document.getElementById('create-form').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+        console.log('Form submitted');
+        var form = event.target;
+        var actionUrl = form.getAttribute('action');
+
+        // Create a new FormData object to serialize the form data
+        var formData = new FormData(form);
+
+        // Send the form data via POST using Fetch API
+        fetch(actionUrl, {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (response.ok) {
+                // Redirect to the list page on success
+                window.location.href = "{{ url_for('page:admin_list', identity=identity) }}";
+            } else {
+                // Handle errors
+                response.json().then(data => {
+                    console.error('Error:', data.detail);
+                    displayErrorMessage(data.detail); // Display the error message to the user
+                }).catch(error => {
+                    console.error('Error parsing JSON:', error);
+                    displayErrorMessage('An unexpected error occurred.'); // Fallback error message
+                });
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            displayErrorMessage('Failed to submit the form. Please try again later.'); // Network or other errors
+        });
+    });
+
+    function displayErrorMessage(message) {
+        // Create or update an error message element in the form
+        var errorElement = document.getElementById('form-error');
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.id = 'form-error';
+            errorElement.className = 'alert alert-danger';
+            document.getElementById('create-form').prepend(errorElement);
+        }
+        errorElement.textContent = message;
+    }
+</script>
 {% endblock %}

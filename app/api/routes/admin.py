@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi import status
 from fastapi.exceptions import HTTPException
-from fastapi.responses import RedirectResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import delete, and_, or_
 
 from wtforms import Form
 
 from app.core.admin.internal import get_model, get_form_class, get_primary_key_names, get_validated_primary_entries
-from app.core.admin.internal import make_admin_list_url_path
+
 from app.core.admin.internal import identity_exists
 from app.core.config import settings
 from app.dependencies import DBDependency, get_current_admin_user
@@ -29,7 +28,6 @@ async def create_item(request: Request,
                       db: DBDependency,
                       model=Depends(get_model),
                       form_cls=Depends(get_form_class),
-                      admin_list_url_path=Depends(make_admin_list_url_path),
                       ):
 
     form: Form = form_cls(await request.form())
@@ -56,7 +54,7 @@ async def create_item(request: Request,
         logger.error(e)
         raise HTTPException(status_code=400, detail="Integrity error")
 
-    return RedirectResponse(url=admin_list_url_path, status_code=status.HTTP_303_SEE_OTHER)
+    return {"detail": "Item created successfully"}
 
 
 @router.delete("/{identity}", name='admin_delete')
@@ -139,7 +137,6 @@ async def update_item(
     model=Depends(get_model),
     form_cls=Depends(get_form_class),
     primary_entries: Dict[str, Any] = Depends(get_validated_primary_entries),
-    admin_list_url_path=Depends(make_admin_list_url_path),
 ):
     obj = await db.get(model, primary_entries)
 
@@ -170,5 +167,4 @@ async def update_item(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Integrity error")
 
-    # Redirect back to the list view after successful update
-    return RedirectResponse(url=admin_list_url_path, status_code=status.HTTP_303_SEE_OTHER)
+    return {"detail": "Item updated successfully"}

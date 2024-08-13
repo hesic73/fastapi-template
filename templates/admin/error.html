@@ -1,0 +1,28 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block admin_content %}
+<div class="container">
+    <h2 class="my-4 text-center text-danger">An Error Occurred</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="alert alert-danger" role="alert">
+                <strong>Error Details:</strong>
+                <p>{{ details }}</p>
+            </div>
+            <div class="d-flex justify-content-center mt-4">
+                <a href="{{ url_for('page:admin_list', identity=identity) }}" class="btn btn-primary mx-2">Go Back to
+                    List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Add any additional JavaScript here if necessary
+</script>
+{% endblock %}
